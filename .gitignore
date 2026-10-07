@@ -1,4 +1,4 @@
-@"
+
 __pycache__/
 *.pyc
 
@@ -19,4 +19,3 @@ data/state/
 data/warehouse/
 
 .pytest_cache/
-"@ | Out-File -FilePath .gitignore -Encoding utf8
