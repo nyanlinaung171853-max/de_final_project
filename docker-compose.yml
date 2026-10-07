@@ -1,0 +1,124 @@
+
+services:
+
+  postgres:
+    image: postgres:16
+    container_name: ecommerce-postgres
+    environment:
+      POSTGRES_USER: ecommerce
+      POSTGRES_PASSWORD: ecommerce
+      POSTGRES_DB: ecommerce
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - spark-net
+
+  spark-master:
+    build: .
+    image: de-project:latest
+    container_name: spark-master
+    command: >
+      bash -c "/opt/spark/sbin/start-master.sh && tail -f /dev/null"
+    ports:
+      - "28080:8080"
+      - "27077:7077"
+    volumes:
+      - ./:/app
+    environment:
+      - PYTHONPATH=/app
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ecommerce
+      - DB_USER=ecommerce
+      - DB_PASSWORD=ecommerce
+    depends_on:
+      - postgres
+    networks:
+      - spark-net
+
+  spark-worker:
+    build: .
+    image: de-project:latest
+    container_name: spark-worker
+    command: >
+      bash -c "sleep 10 && /opt/spark/sbin/start-worker.sh spark://spark-master:7077 && tail -f /dev/null"
+    environment:
+      - PYTHONPATH=/app
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=ecommerce
+      - DB_USER=ecommerce
+      - DB_PASSWORD=ecommerce
+      - SPARK_WORKER_MEMORY=2g
+      - SPARK_WORKER_CORES=2
+    depends_on:
+      - spark-master
+    volumes:
+      - ./:/app
+    networks:
+      - spark-net
+
+    # ==========================================
+  # ZOOKEEPER (Kafka အတွက်)
+  # ==========================================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - spark-net
+
+  # ==========================================
+  # KAFKA BROKER
+  # ==========================================
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 10
+    networks:
+      - spark-net
+
+  # ==========================================
+  # KAFKA UI (optional - topic တွေ ကြည့်ဖို့)
+  # ==========================================
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: kafka-ui
+    depends_on:
+      - kafka
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+    networks:
+      - spark-net
+
+volumes:
+  postgres_data:
+
+networks:
+  spark-net:
+    driver: bridge
+
+  

@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.log
+logs/
+data/
+bronze/
+silver/
+gold/
+checkpoints/
+.venv/
+venv/
+.git/
+.gitignore
+.pytest_cache/
+*.md

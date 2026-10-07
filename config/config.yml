@@ -1,0 +1,42 @@
+# config/config.yaml
+api:
+  url: "https://dummyjson.com/products"
+  timeout: 10
+  max_retries: 3
+  page_size: 30
+
+kafka:
+  bootstrap: "kafka:29092"
+  topic: "products_stream"
+  partitions: 3
+
+spark:
+  app_name: "EcommercePipeline"
+  master: "local[*]"
+  shuffle_partitions: 3
+
+database:
+  host: "postgres"
+  port: 5432
+  name: "ecommerce"
+  user: "ecommerce"
+  password: "ecommerce"
+
+paths:
+  bronze: "/app/data/bronze"
+  silver: "/app/data/silver"
+  silver_streaming: "/app/data/silver_streaming"
+  gold: "/app/data/gold"
+  quarantine: "/app/data/quarantine"
+  checkpoints: "/app/checkpoints"
+
+quality:
+  valid_categories:
+    - "beauty"
+    - "fragrances"
+    - "furniture"
+    - "groceries"
+  price_min: 0
+  price_max: 100000
+  rating_min: 0
+  rating_max: 5

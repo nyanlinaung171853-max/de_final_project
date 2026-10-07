@@ -1,0 +1,22 @@
+@"
+__pycache__/
+*.pyc
+
+.venv/
+venv/
+
+.env
+
+logs/
+*.log
+
+data/bronze/
+data/silver/
+data/gold/
+data/checkpoints/
+data/dlq/
+data/state/
+data/warehouse/
+
+.pytest_cache/
+"@ | Out-File -FilePath .gitignore -Encoding utf8
