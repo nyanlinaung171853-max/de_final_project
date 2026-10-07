@@ -1,4 +1,3 @@
-
 __pycache__/
 *.pyc
 
@@ -17,5 +16,5 @@ data/checkpoints/
 data/dlq/
 data/state/
 data/warehouse/
-
+checkpoints/
 .pytest_cache/
